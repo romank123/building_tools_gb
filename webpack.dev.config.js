@@ -1,57 +1,51 @@
-const path = require('path');
+const { resolve } = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-    entry: {
-        main: ["@babel/polyfill", "whatwg-fetch", "./src/public/index.js"]
-    },
+    entry: resolve(__dirname, 'src', 'index.js'),
     output: {
-        path: path.join(__dirname, 'dist/public/'),
-        publicPath: "",
-        filename: "js/[name].js"
+        path: resolve(__dirname, 'dist'),
+        filename: 'main.[contenthash].js'
     },
-    target: "web",
     module: {
-        rules: [
-            {
-                // js - компиляция es6+ в es5
-                test: /\.js$/,
-                exclude: /node_modules/,
-                use: {
-					loader: 'babel-loader',
-					options: {
-					  presets: ['@babel/preset-env'],
-					  plugins: ['@babel/plugin-proposal-class-properties']
-					}
-				  }
-            },
-            {
-                test: /\.html$/,
+        rules: [{
+                test: /\.s[ac]ss$/i,
                 use: [
-                    {
-                        loader: "html-loader"
-                    }
+                    'style-loader',
+                    'css-loader',
+                    'sass-loader'
                 ]
             },
             {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader']
-            }
+                test: /\.(png|jpe?g|gif)$/i,
+                use: [{
+                        loader: 'img-optimize-loader',
+                        options: {
+                            compress: {
+                                mode: 'high',
+                                webp: true,
+                                gifsicle: true,
+                                disableOnDevelopment: false,
+                            },
+                        },
+                    },
+
+                ],
+            },
+            {
+                test: /\.(mp[3|4])$/i,
+                use: [{
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]'
+                    }
+                }]
+            },
         ]
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: "src/public/index.html",
-            filename: "index.html",
-            excludeChunks: ['server']
+            template: resolve(__dirname, 'src', 'index.html'),
         }),
-		new CopyPlugin([
-            {
-                from: 'src/public/sounds',
-                to: 'sounds/[name].[ext]',
-                toType: 'template'
-            }
-        ])
-    ]
+    ],
 };
